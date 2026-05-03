@@ -33,3 +33,4 @@ src = ["."]
 
 [tool.ruff.lint]
 select = ["E", "F", "I"]
+exclude = ["bin/seed.py"]
