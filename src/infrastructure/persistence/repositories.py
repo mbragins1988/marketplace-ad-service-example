@@ -1,6 +1,6 @@
 from typing import List
 
-from sqlalchemy import func, select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.application.ports.repositories import AdRepository
@@ -29,18 +29,16 @@ class SQLAlchemyAdRepository(AdRepository):
             category=category,
             city=city,
             status=AdStatus.ACTIVE.value,
-            views=0,
         )
         self._session.add(model)
         await self._session.flush()
-        await self._session.refresh(model)
         return _to_entity(model)
 
-    async def get_by_id(
-        self,
-        ad_id: int,
-    ) -> Ad | None:
-        raise NotImplementedError
+    async def get_by_id(self, ad_id: int) -> Ad | None:
+        model = await self._session.get(AdModel, ad_id)
+        if model is None:
+            return None
+        return _to_entity(model)
 
     async def list(
         self,
@@ -48,30 +46,37 @@ class SQLAlchemyAdRepository(AdRepository):
         limit: int,
         offset: int,
     ) -> tuple[List[Ad], int]:
-        query = select(AdModel).where(AdModel.status == AdStatus.ACTIVE.value)
-        count_query = (
-            select(func.count())
-            .select_from(AdModel)
-            .where(AdModel.status == AdStatus.ACTIVE.value)
-        )
-
+        query = select(AdModel)
         if user_id is not None:
             query = query.where(AdModel.user_id == user_id)
-            count_query = count_query.where(AdModel.user_id == user_id)
+        query = query.where(AdModel.status == AdStatus.ACTIVE.value)
 
-        query = query.order_by(AdModel.created_at.desc()).limit(limit).offset(offset)
+        total_query = select(AdModel).where(AdModel.status == AdStatus.ACTIVE.value)
+        if user_id is not None:
+            total_query = total_query.where(AdModel.user_id == user_id)
 
-        items_result = await self._session.execute(query)
-        count_result = await self._session.execute(count_query)
-        models = items_result.scalars().all()
-        total = count_result.scalar_one()
-        return [_to_entity(m) for m in models], total
+        total = await self._session.scalar(select(AdModel).from_statement(total_query))
 
-    async def save(
-        self,
-        ad: Ad,
-    ) -> None:
-        raise NotImplementedError
+        query = query.order_by(AdModel.created_at.desc()).offset(offset).limit(limit)
+        result = await self._session.execute(query)
+        models = result.scalars().all()
+
+        return [_to_entity(m) for m in models], total or 0
+
+    async def save(self, ad: Ad) -> None:
+        await self._session.execute(
+            update(AdModel)
+            .where(AdModel.id == ad.id)
+            .values(
+                title=ad.title,
+                description=ad.description,
+                price=ad.price,
+                category=ad.category,
+                city=ad.city,
+                status=ad.status.value,
+                updated_at=ad.updated_at,
+            )
+        )
 
 
 def _to_entity(model: AdModel) -> Ad:
