@@ -22,7 +22,6 @@ class ListAds(ListAdsPort):
                 limit=limit,
                 offset=offset,
             )
-
         unique_ids = list({ad.user_id for ad in ads})
         users = await asyncio.gather(
             *(self._user_profile.user(uid) for uid in unique_ids)

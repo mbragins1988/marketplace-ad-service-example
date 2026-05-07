@@ -1,6 +1,6 @@
 from typing import List
 
-from sqlalchemy import select, update
+from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.application.ports.repositories import AdRepository
@@ -51,11 +51,11 @@ class SQLAlchemyAdRepository(AdRepository):
             query = query.where(AdModel.user_id == user_id)
         query = query.where(AdModel.status == AdStatus.ACTIVE.value)
 
-        total_query = select(AdModel).where(AdModel.status == AdStatus.ACTIVE.value)
+        total_query = select(func.count()).select_from(AdModel).where(AdModel.status == AdStatus.ACTIVE.value)
         if user_id is not None:
             total_query = total_query.where(AdModel.user_id == user_id)
 
-        total = await self._session.scalar(select(AdModel).from_statement(total_query))
+        total = await self._session.scalar(total_query)
 
         query = query.order_by(AdModel.created_at.desc()).offset(offset).limit(limit)
         result = await self._session.execute(query)
