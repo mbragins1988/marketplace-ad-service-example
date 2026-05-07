@@ -51,7 +51,11 @@ class SQLAlchemyAdRepository(AdRepository):
             query = query.where(AdModel.user_id == user_id)
         query = query.where(AdModel.status == AdStatus.ACTIVE.value)
 
-        total_query = select(func.count()).select_from(AdModel).where(AdModel.status == AdStatus.ACTIVE.value)
+        total_query = (
+            select(func.count())
+            .select_from(AdModel)
+            .where(AdModel.status == AdStatus.ACTIVE.value)
+        )
         if user_id is not None:
             total_query = total_query.where(AdModel.user_id == user_id)
 
