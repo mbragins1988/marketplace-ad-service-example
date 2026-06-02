@@ -24,7 +24,7 @@ COPY . .
 
 RUN uv sync --frozen --no-dev
 
-# Копируем существующий entrypoint.sh
+# Копируем существующий entrypoint.sh/
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
