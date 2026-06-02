@@ -8,5 +8,8 @@ cd /app
 echo "Applying database migrations..."
 uv run alembic upgrade head
 
-echo "Starting FastAPI application..."
+# Запускаем воркер в фоновом режиме
+uv run python -m bin.outbox_relay &
+
+# Запускаем API
 exec uv run python -m bin.api
