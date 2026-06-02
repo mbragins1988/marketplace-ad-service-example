@@ -17,12 +17,17 @@ RUN apt-get update \
 WORKDIR /app
 
 COPY pyproject.toml uv.lock ./
+RUN pip install uv
 RUN uv sync --frozen --no-install-project --no-dev
 
 COPY . .
 
 RUN uv sync --frozen --no-dev
 
-EXPOSE 8002
+# Копируем существующий entrypoint.sh
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
-CMD ["uv", "run", "python", "-m", "bin.api"]
+EXPOSE 8000
+
+ENTRYPOINT ["/entrypoint.sh"]

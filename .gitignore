@@ -13,6 +13,7 @@ wheels/
 .env
 
 CLAUDE.md
+kube/
 
 # macOS
 .DS_Store
