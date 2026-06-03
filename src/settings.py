@@ -6,9 +6,10 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
     jwt_secret: str = "change-me"
     jwt_algorithm: str = "HS256"
-    kafka_topic_ads: str = "ads"
+    kafka_topic_ads: str = os.getenv("KAFKA_TOPIC_ADS", "student_mbragins1988-marketplace.ads")
     auth_service_url: str = "http://localhost:8000"
     kafka_bootstrap_servers: str = os.getenv("KAFKA_BROKERS", "localhost:9092")
+    kafka_consumer_group: str = os.getenv("KAFKA_CONSUMER_GROUP", "search-service")
 
     @property
     def database_url(self) -> str:
