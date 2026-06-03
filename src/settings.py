@@ -1,4 +1,5 @@
 import os
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -6,7 +7,9 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
     jwt_secret: str = "change-me"
     jwt_algorithm: str = "HS256"
-    kafka_topic_ads: str = os.getenv("KAFKA_TOPIC_ADS", "student_mbragins1988-marketplace.ads")
+    kafka_topic_ads: str = os.getenv(
+        "KAFKA_TOPIC_ADS", "student_mbragins1988-marketplace.ads"
+    )
     auth_service_url: str = "http://localhost:8000"
     kafka_bootstrap_servers: str = os.getenv("KAFKA_BROKERS", "localhost:9092")
     kafka_consumer_group: str = os.getenv("KAFKA_CONSUMER_GROUP", "search-service")
@@ -15,7 +18,7 @@ class Settings(BaseSettings):
     def database_url(self) -> str:
         # Получаем переменную из окружения
         pg_conn = os.getenv("POSTGRES_CONNECTION_STRING")
-        
+
         if pg_conn:
             # Если строка начинается с postgres:// или postgresql://
             if pg_conn.startswith("postgres://"):
@@ -23,6 +26,6 @@ class Settings(BaseSettings):
             elif pg_conn.startswith("postgresql://") and "+asyncpg" not in pg_conn:
                 pg_conn = pg_conn.replace("postgresql://", "postgresql+asyncpg://", 1)
             return pg_conn
-        
+
         # Fallback для локальной разработки
         return "postgresql+asyncpg://postgres:postgres@localhost:5433/auth_db"
