@@ -34,51 +34,22 @@ services:
     networks:
       - marketplace
 
-  ad-migrate:
-    build:
-      context: .
-    command: ["uv", "run", "alembic", "upgrade", "head"]
-    environment:
-      DATABASE_URL: postgresql+asyncpg://postgres:postgres@ad-postgres:5432/ads_db
-    depends_on:
-      ad-postgres:
-        condition: service_healthy
-    networks:
-      - marketplace
-
   ad-service:
     build:
       context: .
-    command: ["uv", "run", "python", "-m", "bin.api"]
     environment:
-      DATABASE_URL: postgresql+asyncpg://postgres:postgres@ad-postgres:5432/ads_db
+      POSTGRES_CONNECTION_STRING: postgresql+asyncpg://postgres:postgres@ad-postgres:5432/ads_db
       KAFKA_BOOTSTRAP_SERVERS: redpanda:29092
+      KAFKA_TOPIC_ADS: ${KAFKA_TOPIC_ADS:-marketplace.ads}
       AUTH_SERVICE_URL: http://auth-service:8000
       JWT_SECRET: ${JWT_SECRET:-change-me}
+    ports:
+      - "8002:8002"
     depends_on:
       ad-postgres:
         condition: service_healthy
       redpanda:
         condition: service_healthy
-      ad-migrate:
-        condition: service_completed_successfully
-    networks:
-      - marketplace
-
-  ad-outbox-relay:
-    build:
-      context: .
-    command: ["uv", "run", "python", "-m", "bin.outbox"]
-    environment:
-      DATABASE_URL: postgresql+asyncpg://postgres:postgres@ad-postgres:5432/ads_db
-      KAFKA_BOOTSTRAP_SERVERS: redpanda:29092
-    depends_on:
-      ad-postgres:
-        condition: service_healthy
-      redpanda:
-        condition: service_healthy
-      ad-migrate:
-        condition: service_completed_successfully
     networks:
       - marketplace
 

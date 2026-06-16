@@ -1,20 +1,23 @@
 import asyncio
-import logging
 
 from aiokafka import AIOKafkaProducer
 
 from src.application.services.outbox_relay import OutboxRelay
-from src.infrastructure.messaging.kafka_broker import KafkaMessageBroker, serialize
+from src.infrastructure.messaging.kafka_broker import (
+    KafkaMessageBroker,
+    serialize,
+)
 from src.infrastructure.persistence.database import (
     create_engine,
     create_session_factory,
 )
 from src.infrastructure.persistence.uow import SQLAlchemyUnitOfWork
 from src.settings import Settings
+from src.tracing import setup_logging
 
 
 async def main() -> None:
-    logging.basicConfig(level=logging.INFO)
+    setup_logging()
     settings = Settings()
     engine = create_engine(settings)
     session_factory = create_session_factory(engine)

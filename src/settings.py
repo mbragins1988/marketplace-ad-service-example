@@ -4,7 +4,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
+    model_config = SettingsConfigDict(
+        env_file=".env", env_file_encoding="utf-8", extra="ignore"
+    )
     jwt_secret: str = "change-me"
     jwt_algorithm: str = "HS256"
     kafka_topic_ads: str = os.getenv(
@@ -28,4 +30,4 @@ class Settings(BaseSettings):
             return pg_conn
 
         # Fallback для локальной разработки
-        return "postgresql+asyncpg://postgres:postgres@localhost:5433/auth_db"
+        return "postgresql+asyncpg://postgres:postgres@localhost:5434/ads_db"
